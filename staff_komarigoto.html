@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>スタッフお困りごと収集ボックス</title>
+<style>
+  :root {
+    --primary: #4a7c8a;
+    --primary-dark: #355d6a;
+    --accent: #f4a261;
+    --bg: #f7f5f0;
+    --card: #ffffff;
+    --text: #2d3a3f;
+    --muted: #7a8a90;
+    --border: #e0dcd3;
+    --success: #6a9f7e;
+    --danger: #c47272;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  .container { max-width: 880px; margin: 0 auto; padding: 24px 16px 80px; }
+  header {
+    text-align: center;
+    padding: 24px 16px 8px;
+  }
+  header h1 {
+    font-size: 28px;
+    margin: 0 0 8px;
+    color: var(--primary-dark);
+    letter-spacing: 0.02em;
+  }
+  header p {
+    color: var(--muted);
+    margin: 0;
+    font-size: 14px;
+  }
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+    background: var(--card);
+    padding: 6px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 10px 14px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tab-btn.active {
+    background: var(--primary);
+    color: white;
+  }
+  .tab-btn:hover:not(.active) { background: rgba(74,124,138,0.08); }
+  .card {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    margin-bottom: 16px;
+  }
+  .field { margin-bottom: 18px; }
+  .field label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    font-size: 14px;
+    color: var(--text);
+  }
+  .field .hint {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: normal;
+    margin-left: 6px;
+  }
+  .required { color: var(--danger); margin-left: 4px; }
+  input[type="text"], textarea, select {
+    width: 100%;
+    padding: 11px 13px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 15px;
+    font-family: inherit;
+    background: #fafaf7;
+    color: var(--text);
+    transition: border-color 0.15s, background 0.15s;
+  }
+  input[type="text"]:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: white;
+  }
+  textarea { min-height: 90px; resize: vertical; }
+  .chip-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .chip {
+    padding: 8px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    background: #fafaf7;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .chip:hover { border-color: var(--primary); }
+  .chip.selected {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 600px) { .row { grid-template-columns: 1fr; } }
+  .btn {
+    padding: 12px 22px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+    width: 100%;
+  }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-secondary {
+    background: white;
+    color: var(--primary);
+    border: 1.5px solid var(--primary);
+  }
+  .btn-secondary:hover { background: rgba(74,124,138,0.06); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+  .btn-ghost:hover { color: var(--danger); }
+  .toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .toolbar .spacer { flex: 1; }
+  .item {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    border-left: 4px solid var(--accent);
+  }
+  .item-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    gap: 12px;
+  }
+  .item-title {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--primary-dark);
+    margin: 0;
+  }
+  .item-meta {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .item-body {
+    font-size: 14px;
+    color: var(--text);
+    white-space: pre-wrap;
+  }
+  .item-body strong { color: var(--primary-dark); }
+  .item-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .tag {
+    background: rgba(74,124,138,0.1);
+    color: var(--primary-dark);
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .tag.priority-high { background: rgba(196,114,114,0.15); color: #a05858; }
+  .tag.priority-mid { background: rgba(244,162,97,0.18); color: #b87330; }
+  .tag.priority-low { background: rgba(106,159,126,0.15); color: #4d7a5e; }
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+  .empty-icon { font-size: 42px; margin-bottom: 12px; opacity: 0.5; }
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--success);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    transition: transform 0.3s;
+    z-index: 1000;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  @media (max-width: 600px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+  }
+  .role-breakdown {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .role-pill {
+    background: var(--card);
+    padding: 5px 12px;
+    border-radius: 14px;
+    font-size: 12px;
+    color: var(--text);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .role-pill strong { color: var(--primary); margin-right: 4px; }
+  .stat-box {
+    background: var(--card);
+    padding: 14px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .stat-num {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--primary);
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .hidden { display: none; }
+  details summary {
+    cursor: pointer;
+    color: var(--primary);
+    font-size: 13px;
+    padding: 4px 0;
+    user-select: none;
+  }
+  details summary:hover { color: var(--primary-dark); }
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .filter-bar select {
+    width: auto;
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+  /* 送信完了画面 */
+  .thanks-card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 48px 32px;
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    margin-top: 24px;
+  }
+  .thanks-check {
+    width: 88px; height: 88px;
+    border-radius: 50%;
+    background: var(--success);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    margin: 0 auto 20px;
+    animation: pop 0.5s cubic-bezier(.4,1.8,.6,1);
+  }
+  @keyframes pop {
+    0% { transform: scale(0); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .thanks-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--primary-dark);
+    margin: 0 0 8px;
+  }
+  .thanks-sub {
+    color: var(--muted);
+    font-size: 15px;
+    margin: 0 0 24px;
+    line-height: 1.7;
+  }
+  .thanks-summary {
+    background: #f7f5f0;
+    border-radius: 10px;
+    padding: 16px 20px;
+    text-align: left;
+    margin: 0 auto 24px;
+    max-width: 480px;
+    font-size: 13px;
+  }
+  .thanks-summary dt {
+    color: var(--muted);
+    font-size: 11px;
+    margin-top: 8px;
+  }
+  .thanks-summary dt:first-child { margin-top: 0; }
+  .thanks-summary dd {
+    margin: 2px 0 0;
+    color: var(--text);
+    font-weight: 600;
+  }
+  .thanks-status {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+  .thanks-status.online {
+    background: rgba(106,159,126,0.15);
+    color: #4d7a5e;
+  }
+  .thanks-status.offline {
+    background: rgba(244,162,97,0.18);
+    color: #b87330;
+  }
+  .thanks-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .config-banner {
+    background: #fff8e1;
+    border: 1px solid #f4c95d;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    font-size: 12px;
+    color: #8a6d1c;
+  }
+  .config-banner code {
+    background: rgba(0,0,0,0.06);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: 'Menlo', 'Consolas', monospace;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>スタッフお困りごと収集ボックス</h1>
+    <p>日々の業務で「これ大変だな…」と感じていることを気軽に投稿してください</p>
+  </header>
+
+  <div id="configBanner" class="config-banner hidden">
+    ⚠ 送信先URLが未設定です。<code>SUBMIT_URL</code> をHTML内で設定してください。現在は端末内ローカル保存になります。
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="form">投稿する</button>
+    <button class="tab-btn" data-tab="list">一覧を見る <span id="countBadge"></span></button>
+  </div>
+
+  <!-- 投稿フォーム -->
+  <section id="tab-form">
+    <div class="card">
+      <div class="field">
+        <label>あなたの職種 <span class="required">*</span><span class="hint">職種を選ぶと該当カテゴリが表示されます</span></label>
+        <div class="chip-group" id="roleChips">
+          <div class="chip" data-value="事務・医療事務">🗂 事務・医療事務</div>
+          <div class="chip" data-value="訪問スタッフ">🚗 訪問スタッフ</div>
+          <div class="chip" data-value="看護師">🩺 看護師</div>
+          <div class="chip" data-value="社会福祉士">🤝 社会福祉士</div>
+          <div class="chip" data-value="その他職種">👥 その他</div>
+        </div>
+      </div>
+
+      <div class="field" id="categoryField" style="display:none;">
+        <label>カテゴリ <span class="required">*</span><span class="hint">該当するものを選んでください</span></label>
+        <div class="chip-group" id="categoryChips"></div>
+      </div>
+
+      <div class="field">
+        <label for="title">業務のタイトル <span class="required">*</span></label>
+        <input type="text" id="title" placeholder="例:月初の患者様向け案内文の作成">
+      </div>
+
+      <div class="field">
+        <label for="problem">どんな点が大変・煩雑ですか? <span class="required">*</span></label>
+        <textarea id="problem" placeholder="例:毎月100名以上の患者様に個別の文章を作成しており、定型部分と個別部分の使い分けに時間がかかる"></textarea>
+      </div>
+
+      <div class="field">
+        <label for="current">現在はどのような手順で行っていますか? <span class="hint">(任意)</span></label>
+        <textarea id="current" placeholder="例:Excelで患者リストを開き、Wordテンプレートを開いて手作業でコピペ → 印刷 → 封入"></textarea>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label for="frequency">頻度</label>
+          <select id="frequency">
+            <option value="">選択してください</option>
+            <option>毎日</option>
+            <option>週に数回</option>
+            <option>週1回</option>
+            <option>月に数回</option>
+            <option>月1回</option>
+            <option>不定期</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="duration">1回あたりの所要時間</label>
+          <select id="duration">
+            <option value="">選択してください</option>
+            <option>15分以内</option>
+            <option>30分〜1時間</option>
+            <option>1〜2時間</option>
+            <option>半日</option>
+            <option>1日以上</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>困っているレベル</label>
+        <div class="chip-group" id="priorityChips">
+          <div class="chip" data-value="低">😌 ちょっと面倒</div>
+          <div class="chip" data-value="中">😩 けっこう大変</div>
+          <div class="chip" data-value="高">🆘 本当に困っている</div>
+        </div>
+      </div>
+
+      <details>
+        <summary>+ 投稿者情報を追加(任意)</summary>
+        <div style="margin-top: 12px;">
+          <div class="row">
+            <div class="field">
+              <label for="name">お名前(任意)</label>
+              <input type="text" id="name" placeholder="匿名でもOK">
+            </div>
+            <div class="field">
+              <label for="department">部署・担当(任意)</label>
+              <input type="text" id="department" placeholder="例:受付、経理、看護">
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <button class="btn btn-primary" id="submitBtn" onclick="submitForm()">投稿する</button>
+    </div>
+  </section>
+
+  <!-- 送信完了画面 -->
+  <section id="tab-thanks" class="hidden">
+    <div class="thanks-card">
+      <div class="thanks-check">✓</div>
+      <h2 class="thanks-title">ありがとうございました!</h2>
+      <p class="thanks-sub">投稿内容を受け付けました。<br>業務改善のヒントとして活用させていただきます。</p>
+      <div class="thanks-status" id="thanksStatus"></div>
+      <dl class="thanks-summary" id="thanksSummary"></dl>
+      <div class="thanks-actions">
+        <button class="btn btn-primary" style="width:auto;" onclick="resetToForm()">もう1件投稿する</button>
+        <button class="btn btn-secondary" onclick="goToList()">一覧を見る</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 一覧タブ -->
+  <section id="tab-list" class="hidden">
+    <div class="stats">
+      <div class="stat-box">
+        <div class="stat-num" id="statTotal">0</div>
+        <div class="stat-label">総投稿数</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" id="statHigh">0</div>
+        <div class="stat-label">本当に困っている</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" id="statRoles">0</div>
+        <div class="stat-label">職種数</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" id="statCategories">0</div>
+        <div class="stat-label">カテゴリ数</div>
+      </div>
+    </div>
+    <div id="roleBreakdown" class="role-breakdown"></div>
+
+    <div class="filter-bar">
+      <select id="filterRole" onchange="renderList()">
+        <option value="">全職種</option>
+        <option value="事務・医療事務">事務・医療事務</option>
+        <option value="訪問スタッフ">訪問スタッフ</option>
+        <option value="看護師">看護師</option>
+        <option value="社会福祉士">社会福祉士</option>
+        <option value="その他職種">その他職種</option>
+      </select>
+      <select id="filterCategory" onchange="renderList()">
+        <option value="">全カテゴリ</option>
+      </select>
+      <select id="filterPriority" onchange="renderList()">
+        <option value="">全優先度</option>
+        <option value="高">本当に困っている</option>
+        <option value="中">けっこう大変</option>
+        <option value="低">ちょっと面倒</option>
+      </select>
+      <select id="sortBy" onchange="renderList()">
+        <option value="new">新しい順</option>
+        <option value="priority">優先度順</option>
+      </select>
+    </div>
+
+    <div class="toolbar">
+      <button class="btn btn-secondary" onclick="exportJSON()">JSONダウンロード</button>
+      <button class="btn btn-secondary" onclick="exportCSV()">CSVダウンロード</button>
+      <div class="spacer"></div>
+      <button class="btn btn-ghost" onclick="clearAll()">すべて削除</button>
+    </div>
+
+    <div id="listContainer"></div>
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// =================================================================
+// 設定 — Apps ScriptデプロイURLをここに貼ってください
+// 例: const SUBMIT_URL = 'https://script.google.com/macros/s/AKfy.../exec';
+// 空のままだと端末内ローカル保存のみになります
+// =================================================================
+const SUBMIT_URL = 'https://script.google.com/macros/s/AKfycbwQJBn1FoT3QqVtejJhuvq9qjguIM618xq8DbOGMq_7BuRsqDSu2ANn8oyCNZEurUx1/exec';
+
+const STORAGE_KEY = 'staff_komarigoto_v2';
+let selectedRole = '';
+let selectedCategory = '';
+let selectedPriority = '';
+
+// 職種ごとのカテゴリ定義
+const ROLE_CATEGORIES = {
+  '事務・医療事務': [
+    '患者様への文書作成','請求書・経理(レセプト含む)','データ整理・集計',
+    'メール・問い合わせ対応','議事録・報告書','予約・スケジュール管理',
+    '在庫・備品管理','その他'
+  ],
+  '訪問スタッフ': [
+    'カルテ記載・記録業務','訪問ルート・運転業務','カンファレンス・多職種連携',
+    'ケアプラン・評価書類','患者様/ご家族への説明','報告書作成',
+    'スケジュール調整','その他'
+  ],
+  '看護師': [
+    'カルテ記載・記録業務','カンファレンス・多職種連携','申し送り・引き継ぎ',
+    '報告書作成','患者様/ご家族への説明','ケア計画',
+    '医療材料・備品管理','その他'
+  ],
+  '社会福祉士': [
+    'ケアプラン・評価書類','カンファレンス・多職種連携','各種申請書類',
+    'ケース記録','関係機関連絡調整','面談記録',
+    '報告書作成','その他'
+  ],
+  'その他職種': [
+    'カルテ記載・記録業務','訪問ルート・運転業務','カンファレンス・多職種連携',
+    'ケアプラン・評価書類','データ整理・集計','報告書作成',
+    'メール・問い合わせ対応','その他'
+  ],
+};
+
+// 職種チップ選択
+document.querySelectorAll('#roleChips .chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('#roleChips .chip').forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
+    selectedRole = chip.dataset.value;
+    selectedCategory = '';
+    renderCategoryChips(selectedRole);
+  });
+});
+
+function renderCategoryChips(role) {
+  const cats = ROLE_CATEGORIES[role] || [];
+  const wrap = document.getElementById('categoryChips');
+  wrap.innerHTML = cats.map(c => `<div class="chip" data-value="${escapeHtml(c)}">${escapeHtml(c)}</div>`).join('');
+  document.getElementById('categoryField').style.display = cats.length ? '' : 'none';
+  wrap.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      wrap.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+      chip.classList.add('selected');
+      selectedCategory = chip.dataset.value;
+    });
+  });
+}
+
+document.querySelectorAll('#priorityChips .chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('#priorityChips .chip').forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
+    selectedPriority = chip.dataset.value;
+  });
+});
+
+// タブ切り替え
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const tab = btn.dataset.tab;
+    document.getElementById('tab-form').classList.toggle('hidden', tab !== 'form');
+    document.getElementById('tab-list').classList.toggle('hidden', tab !== 'list');
+    if (tab === 'list') renderList();
+  });
+});
+
+function loadData() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  } catch (e) { return []; }
+}
+
+function saveData(data) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  updateBadge();
+}
+
+function updateBadge() {
+  const data = loadData();
+  const badge = document.getElementById('countBadge');
+  badge.textContent = data.length > 0 ? `(${data.length})` : '';
+}
+
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = isError ? 'var(--danger)' : 'var(--success)';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+async function submitForm() {
+  const title = document.getElementById('title').value.trim();
+  const problem = document.getElementById('problem').value.trim();
+  if (!selectedRole) { showToast('職種を選択してください', true); return; }
+  if (!selectedCategory) { showToast('カテゴリを選択してください', true); return; }
+  if (!title) { showToast('業務のタイトルを入力してください', true); return; }
+  if (!problem) { showToast('困っている点を入力してください', true); return; }
+
+  const entry = {
+    id: Date.now(),
+    createdAt: new Date().toISOString(),
+    role: selectedRole,
+    category: selectedCategory,
+    title,
+    problem,
+    current: document.getElementById('current').value.trim(),
+    frequency: document.getElementById('frequency').value,
+    duration: document.getElementById('duration').value,
+    priority: selectedPriority,
+    name: document.getElementById('name').value.trim(),
+    department: document.getElementById('department').value.trim(),
+  };
+
+  const submitBtn = document.getElementById('submitBtn');
+  submitBtn.disabled = true;
+  submitBtn.textContent = '送信中…';
+
+  // クラウドへ送信(SUBMIT_URLが設定されている場合)
+  // Google Apps ScriptはCORSレスポンスヘッダーを返さないため、no-corsモードで送信
+  // (送信自体は成功するが、レスポンス内容は読めない=opaque)
+  let cloudOk = false;
+  let cloudError = '';
+  if (SUBMIT_URL) {
+    try {
+      await fetch(SUBMIT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(entry),
+        redirect: 'follow',
+      });
+      // no-corsモードではレスポンスを検証できないため、例外が出なければ成功とみなす
+      cloudOk = true;
+    } catch (e) {
+      cloudError = e.message || 'ネットワークエラー';
+    }
+  }
+
+  // ローカルにも常に保存(オフライン時のバックアップ&一覧表示用)
+  const data = loadData();
+  data.unshift({ ...entry, _cloudSynced: cloudOk });
+  saveData(data);
+
+  // 完了画面表示
+  showThanksScreen(entry, cloudOk, cloudError);
+
+  // フォームリセット
+  document.getElementById('title').value = '';
+  document.getElementById('problem').value = '';
+  document.getElementById('current').value = '';
+  document.getElementById('frequency').value = '';
+  document.getElementById('duration').value = '';
+  document.getElementById('name').value = '';
+  document.getElementById('department').value = '';
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+  document.getElementById('categoryChips').innerHTML = '';
+  document.getElementById('categoryField').style.display = 'none';
+  selectedRole = '';
+  selectedCategory = '';
+  selectedPriority = '';
+
+  submitBtn.disabled = false;
+  submitBtn.textContent = '投稿する';
+}
+
+function showThanksScreen(entry, cloudOk, cloudError) {
+  // タブ非表示、完了画面表示
+  document.getElementById('tab-form').classList.add('hidden');
+  document.getElementById('tab-list').classList.add('hidden');
+  document.getElementById('tab-thanks').classList.remove('hidden');
+  document.querySelector('.tabs').classList.add('hidden');
+
+  // ステータス
+  const status = document.getElementById('thanksStatus');
+  if (!SUBMIT_URL) {
+    status.className = 'thanks-status offline';
+    status.textContent = '📱 端末内に保存しました(クラウド未設定)';
+  } else if (cloudOk) {
+    status.className = 'thanks-status online';
+    status.textContent = '☁ クラウドに保存しました';
+  } else {
+    status.className = 'thanks-status offline';
+    status.textContent = `⚠ クラウド送信失敗 — 端末内に保存しました${cloudError ? '('+cloudError+')' : ''}`;
+  }
+
+  // サマリ
+  const dl = document.getElementById('thanksSummary');
+  dl.innerHTML = `
+    <dt>職種</dt><dd>${escapeHtml(entry.role)}</dd>
+    <dt>カテゴリ</dt><dd>${escapeHtml(entry.category)}</dd>
+    <dt>タイトル</dt><dd>${escapeHtml(entry.title)}</dd>
+    ${entry.priority ? `<dt>困っているレベル</dt><dd>${escapeHtml(entry.priority === '高' ? '🆘 本当に困っている' : entry.priority === '中' ? '😩 けっこう大変' : '😌 ちょっと面倒')}</dd>` : ''}
+  `;
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function resetToForm() {
+  document.getElementById('tab-thanks').classList.add('hidden');
+  document.querySelector('.tabs').classList.remove('hidden');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.tab-btn[data-tab="form"]').classList.add('active');
+  document.getElementById('tab-form').classList.remove('hidden');
+}
+
+function goToList() {
+  document.getElementById('tab-thanks').classList.add('hidden');
+  document.querySelector('.tabs').classList.remove('hidden');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.tab-btn[data-tab="list"]').classList.add('active');
+  document.getElementById('tab-list').classList.remove('hidden');
+  renderList();
+}
+
+function renderList() {
+  const data = loadData();
+  const container = document.getElementById('listContainer');
+
+  // 統計
+  document.getElementById('statTotal').textContent = data.length;
+  document.getElementById('statHigh').textContent = data.filter(d => d.priority === '高').length;
+  document.getElementById('statRoles').textContent = new Set(data.map(d => d.role).filter(Boolean)).size;
+  document.getElementById('statCategories').textContent = new Set(data.map(d => d.category)).size;
+
+  // 職種別件数表示
+  const roleCounts = {};
+  data.forEach(d => {
+    const r = d.role || '未設定';
+    roleCounts[r] = (roleCounts[r] || 0) + 1;
+  });
+  const breakdown = document.getElementById('roleBreakdown');
+  breakdown.innerHTML = Object.entries(roleCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([r, n]) => `<span class="role-pill"><strong>${n}</strong>${escapeHtml(r)}</span>`).join('');
+
+  // カテゴリフィルタ更新
+  const filterSel = document.getElementById('filterCategory');
+  const currentVal = filterSel.value;
+  const cats = [...new Set(data.map(d => d.category))];
+  filterSel.innerHTML = '<option value="">全カテゴリ</option>' +
+    cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+  filterSel.value = currentVal;
+
+  // フィルタ&ソート
+  const fr = document.getElementById('filterRole').value;
+  const fc = document.getElementById('filterCategory').value;
+  const fp = document.getElementById('filterPriority').value;
+  const sb = document.getElementById('sortBy').value;
+  let filtered = data
+    .filter(d => !fr || d.role === fr)
+    .filter(d => !fc || d.category === fc)
+    .filter(d => !fp || d.priority === fp);
+  if (sb === 'priority') {
+    const order = { '高': 0, '中': 1, '低': 2, '': 3 };
+    filtered.sort((a, b) => (order[a.priority] - order[b.priority]));
+  }
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<div class="empty"><div class="empty-icon">📭</div><div>${data.length === 0 ? 'まだ投稿がありません。「投稿する」タブから入力してみましょう。' : '条件に合う投稿がありません'}</div></div>`;
+    return;
+  }
+
+  const roleIcons = { '事務・医療事務':'🗂','訪問スタッフ':'🚗','看護師':'🩺','社会福祉士':'🤝','その他職種':'👥' };
+
+  container.innerHTML = filtered.map(d => {
+    const date = new Date(d.createdAt).toLocaleString('ja-JP', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const priorityClass = d.priority === '高' ? 'priority-high' : d.priority === '中' ? 'priority-mid' : d.priority === '低' ? 'priority-low' : '';
+    const tags = [];
+    if (d.role) tags.push(`<span class="tag">${escapeHtml((roleIcons[d.role]||'') + ' ' + d.role)}</span>`);
+    if (d.priority) tags.push(`<span class="tag ${priorityClass}">${escapeHtml(d.priority === '高' ? '🆘 本当に困っている' : d.priority === '中' ? '😩 けっこう大変' : '😌 ちょっと面倒')}</span>`);
+    if (d.frequency) tags.push(`<span class="tag">頻度: ${escapeHtml(d.frequency)}</span>`);
+    if (d.duration) tags.push(`<span class="tag">${escapeHtml(d.duration)}</span>`);
+
+    return `
+      <div class="item">
+        <div class="item-header">
+          <div>
+            <h3 class="item-title">${escapeHtml(d.title)}</h3>
+            <div class="item-meta">
+              📂 ${escapeHtml(d.category)} ・ ${date}
+              ${d.name || d.department ? ' ・ 👤 ' + escapeHtml([d.name, d.department].filter(Boolean).join(' / ')) : ''}
+            </div>
+          </div>
+          <button class="btn btn-ghost" onclick="deleteEntry(${d.id})" title="削除">🗑</button>
+        </div>
+        <div class="item-body"><strong>困りごと:</strong>\n${escapeHtml(d.problem)}${d.current ? `\n\n<strong>現在の手順:</strong>\n${escapeHtml(d.current)}` : ''}</div>
+        <div class="item-tags">${tags.join('')}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function deleteEntry(id) {
+  if (!confirm('この投稿を削除しますか?')) return;
+  const data = loadData().filter(d => d.id !== id);
+  saveData(data);
+  renderList();
+  showToast('削除しました');
+}
+
+function clearAll() {
+  if (!confirm('すべての投稿を削除します。よろしいですか?')) return;
+  saveData([]);
+  renderList();
+  showToast('すべて削除しました');
+}
+
+function exportJSON() {
+  const data = loadData();
+  if (data.length === 0) { showToast('データがありません', true); return; }
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  download(blob, `komarigoto_${todayStr()}.json`);
+}
+
+function exportCSV() {
+  const data = loadData();
+  if (data.length === 0) { showToast('データがありません', true); return; }
+  const headers = ['投稿日時','職種','カテゴリ','タイトル','困りごと','現在の手順','頻度','所要時間','優先度','投稿者','部署'];
+  const rows = data.map(d => [
+    new Date(d.createdAt).toLocaleString('ja-JP'),
+    d.role || '',
+    d.category, d.title, d.problem, d.current || '',
+    d.frequency || '', d.duration || '', d.priority || '',
+    d.name || '', d.department || ''
+  ]);
+  const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+  download(blob, `komarigoto_${todayStr()}.csv`);
+}
+
+function download(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+updateBadge();
+
+// 設定バナー表示
+if (!SUBMIT_URL) {
+  document.getElementById('configBanner').classList.remove('hidden');
+}
+</script>
+</body>
+</html>
