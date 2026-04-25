@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>辞書・雛形 管理</title>
+<style>
+  :root {
+    --primary: #4a7c8a;
+    --primary-dark: #355d6a;
+    --accent: #f4a261;
+    --bg: #f7f5f0;
+    --card: #ffffff;
+    --text: #2d3a3f;
+    --muted: #7a8a90;
+    --border: #e0dcd3;
+    --success: #6a9f7e;
+    --danger: #c47272;
+    --warn: #b87330;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    min-height: 100vh;
+  }
+  .container { max-width: 1200px; margin: 0 auto; padding: 20px 16px 80px; }
+  header {
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  header h1 { font-size: clamp(20px, 4vw, 24px); margin: 0 0 4px; color: var(--primary-dark); }
+  header p { color: var(--muted); margin: 0; font-size: 12px; }
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    background: var(--card);
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    margin-bottom: 14px;
+    font-size: 13px;
+  }
+  .top-bar .status { color: var(--muted); }
+  .top-bar .status.online { color: var(--success); font-weight: 600; }
+  .top-bar button {
+    padding: 5px 12px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 12px;
+    font-family: inherit;
+  }
+  .top-bar button:hover { color: var(--danger); }
+
+  /* ログイン画面 */
+  .login-card {
+    max-width: 420px;
+    margin: 80px auto;
+    background: var(--card);
+    border-radius: 14px;
+    padding: 32px 28px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    text-align: center;
+  }
+  .login-card .lock { font-size: 48px; margin-bottom: 12px; opacity: 0.6; }
+  .login-card h2 { margin: 0 0 24px; font-size: 20px; color: var(--primary-dark); }
+  .login-card input {
+    width: 100%;
+    padding: 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 16px;
+    font-family: inherit;
+    margin-bottom: 12px;
+  }
+  .login-card input:focus { outline: none; border-color: var(--primary); }
+  .login-card .api-url-input {
+    font-size: 12px;
+    padding: 8px;
+  }
+  .login-card .config-toggle {
+    color: var(--muted);
+    font-size: 12px;
+    cursor: pointer;
+    margin-bottom: 12px;
+    user-select: none;
+  }
+  .login-card .config-toggle:hover { color: var(--primary); }
+  .login-error {
+    color: var(--danger);
+    font-size: 13px;
+    margin-top: 8px;
+    min-height: 18px;
+  }
+
+  /* タブ */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+    background: var(--card);
+    padding: 6px;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 10px 14px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .tab-btn.active { background: var(--primary); color: white; }
+  .tab-btn:hover:not(.active) { background: rgba(74,124,138,0.08); }
+
+  /* カード */
+  .card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 18px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    margin-bottom: 14px;
+  }
+  .card h2 { margin: 0 0 12px; font-size: 16px; color: var(--primary-dark); }
+
+  /* ボタン */
+  .btn {
+    padding: 9px 18px;
+    border: none;
+    border-radius: 7px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-secondary { background: white; color: var(--primary); border: 1.5px solid var(--primary); }
+  .btn-secondary:hover { background: rgba(74,124,138,0.06); }
+  .btn-danger { background: white; color: var(--danger); border: 1.5px solid var(--danger); }
+  .btn-danger:hover { background: rgba(196,114,114,0.06); }
+  .btn-tiny { padding: 4px 10px; font-size: 12px; border-radius: 5px; }
+  .btn-ghost { background: transparent; color: var(--muted); padding: 5px 10px; font-size: 12px; }
+  .btn-ghost:hover { color: var(--primary); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* フォーム */
+  .field { margin-bottom: 12px; }
+  .field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--text);
+  }
+  .field .hint { color: var(--muted); font-weight: normal; font-size: 11px; margin-left: 6px; }
+  input[type="text"], textarea, select {
+    width: 100%;
+    padding: 8px 11px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    font-size: 14px;
+    font-family: inherit;
+    background: #fafaf7;
+    color: var(--text);
+  }
+  input[type="text"]:focus, textarea:focus, select:focus {
+    outline: none; border-color: var(--primary); background: white;
+  }
+  textarea { min-height: 70px; resize: vertical; line-height: 1.5; }
+  textarea.template { font-family: 'Menlo', 'Consolas', monospace; font-size: 13px; }
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+  .form-row.thirds { grid-template-columns: 1fr 1fr 1fr; }
+  @media (max-width: 600px) { .form-row.thirds { grid-template-columns: 1fr; } }
+  .form-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+
+  /* 略語リスト(テーブル) */
+  table.list {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  table.list th, table.list td {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  table.list th { background: #f0ede5; color: var(--muted); font-weight: 600; font-size: 12px; }
+  table.list td .editable {
+    width: 100%;
+    padding: 4px 8px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: inherit;
+    background: transparent;
+  }
+  table.list td .editable:focus {
+    outline: none;
+    background: white;
+    border-color: var(--primary);
+  }
+  table.list td.actions { text-align: right; white-space: nowrap; }
+  table.list tr.disabled td { opacity: 0.4; }
+
+  /* 雛形カード */
+  .hinagata-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .hinagata-card {
+    background: var(--card);
+    border-radius: 10px;
+    padding: 14px 16px;
+    border-left: 4px solid var(--accent);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .hinagata-card.disabled { opacity: 0.5; border-left-color: var(--muted); }
+  .hinagata-card .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .hinagata-card .name { font-weight: 700; font-size: 15px; color: var(--primary-dark); }
+  .hinagata-card .triggers { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+  .hinagata-card .template-preview {
+    background: #fafaf7;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-family: 'Menlo', monospace;
+    font-size: 12px;
+    color: var(--text);
+    margin-bottom: 6px;
+    white-space: pre-wrap;
+    max-height: 100px;
+    overflow-y: auto;
+  }
+
+  /* テストプレビュー */
+  .test-output {
+    background: #fafaf7;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 12px;
+    white-space: pre-wrap;
+    font-family: -apple-system, "Hiragino Sans", monospace;
+    font-size: 13px;
+    color: var(--text);
+    min-height: 80px;
+  }
+  .test-output.empty { color: var(--muted); font-style: italic; }
+
+  /* チェックボックス */
+  .toggle {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 36px;
+    height: 20px;
+    background: #ccc;
+    border-radius: 10px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin: 0;
+  }
+  .toggle:checked { background: var(--success); }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background: white;
+    border-radius: 50%;
+    transition: left 0.2s;
+  }
+  .toggle:checked::after { left: 18px; }
+
+  /* トースト */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--success);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    transition: transform 0.3s;
+    z-index: 1000;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.error { background: var(--danger); }
+  .toast.warn { background: var(--warn); }
+
+  .hidden { display: none !important; }
+  .loading { color: var(--muted); font-style: italic; padding: 20px; text-align: center; }
+  .empty { color: var(--muted); font-style: italic; padding: 30px; text-align: center; }
+
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .toolbar .filter {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .toolbar .filter input { width: 200px; padding: 6px 10px; font-size: 13px; }
+  .toolbar .filter select { width: auto; padding: 6px 10px; font-size: 13px; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba(74,124,138,0.1);
+    color: var(--primary-dark);
+  }
+</style>
+</head>
+<body>
+
+<!-- ログイン画面 -->
+<div id="loginScreen" class="container">
+  <div class="login-card">
+    <div class="lock">🔒</div>
+    <h2>辞書・雛形 管理</h2>
+    <input type="password" id="passwordInput" placeholder="パスワード" autofocus>
+    <div class="config-toggle" onclick="toggleConfig()">▼ 詳細設定(初回のみ)</div>
+    <div id="configSection" class="hidden">
+      <input type="text" id="apiUrlInput" class="api-url-input" placeholder="GAS Web App URL (https://script.google.com/macros/s/.../exec)">
+    </div>
+    <button class="btn btn-primary" style="width: 100%;" onclick="doLogin()">ログイン</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- メイン画面 -->
+<div id="mainScreen" class="container hidden">
+  <header>
+    <h1>🛠 辞書・雛形 管理</h1>
+    <p>略語と雛形をまとめて追加・編集できる管理者用ツール</p>
+  </header>
+
+  <div class="top-bar">
+    <div>
+      <span class="status online" id="statusBadge">● 接続中</span>
+      <span style="color: var(--muted); margin-left: 12px;" id="statsText"></span>
+    </div>
+    <div>
+      <button class="btn btn-ghost" onclick="clearCachesAndReload()" title="Botのキャッシュをクリアして即時反映状態に">🔄 即時反映</button>
+      <button class="btn btn-ghost" onclick="doLogout()">ログアウト</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="ryakugo">📖 略語</button>
+    <button class="tab-btn" data-tab="hinagata">📋 雛形</button>
+    <button class="tab-btn" data-tab="test">🧪 テスト</button>
+  </div>
+
+  <!-- 略語タブ -->
+  <section id="tab-ryakugo">
+    <div class="card">
+      <h2>+ 新規略語の追加</h2>
+      <div class="form-row thirds">
+        <div class="field">
+          <label>略語 <span class="hint">小文字推奨</span></label>
+          <input type="text" id="ryakugoNewAbbr" placeholder="例: tx">
+        </div>
+        <div class="field">
+          <label>正式名称</label>
+          <input type="text" id="ryakugoNewFull" placeholder="例: 治療">
+        </div>
+        <div class="field">
+          <label>カテゴリ</label>
+          <select id="ryakugoNewCategory">
+            <option value="">(未指定)</option>
+            <option>投与経路</option>
+            <option>用法・頻度</option>
+            <option>バイタル</option>
+            <option>薬剤名</option>
+            <option>医療材料</option>
+            <option>部位・解剖</option>
+            <option>症状・病態</option>
+            <option>その他</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>例文 <span class="hint">(任意)</span></label>
+          <input type="text" id="ryakugoNewExample" placeholder="例: tx を継続する">
+        </div>
+        <div class="field">
+          <label>追加メモ <span class="hint">(任意)</span></label>
+          <input type="text" id="ryakugoNewMemo" placeholder="注意点など">
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="addRyakugo()">追加</button>
+        <button class="btn btn-secondary" onclick="loadRyakugo(true)">最新を取得</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <h2 style="margin: 0;">📖 略語一覧 <span class="badge" id="ryakugoCount">…</span></h2>
+        <div class="filter">
+          <input type="text" id="ryakugoSearch" placeholder="絞り込み(略語/正式名称)" oninput="renderRyakugoList()">
+          <select id="ryakugoCategoryFilter" onchange="renderRyakugoList()">
+            <option value="">全カテゴリ</option>
+          </select>
+        </div>
+      </div>
+      <div id="ryakugoListContainer">
+        <div class="loading">読み込み中…</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 雛形タブ -->
+  <section id="tab-hinagata" class="hidden">
+    <div class="card">
+      <h2 id="hinagataFormTitle">+ 新規雛形の追加</h2>
+      <div class="form-row">
+        <div class="field">
+          <label>雛形名 <span class="hint">必須</span></label>
+          <input type="text" id="hinagataName" placeholder="例: セレネース">
+        </div>
+        <div class="field">
+          <label>カテゴリ</label>
+          <select id="hinagataCategory">
+            <option value="">(未指定)</option>
+            <option>麻薬・鎮痛剤</option>
+            <option>被覆材・褥瘡</option>
+            <option>栄養剤</option>
+            <option>抗生剤</option>
+            <option>輸液</option>
+            <option>その他</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>トリガー語 <span class="hint">必須・カンマ区切り 例: セレネース,haloperidol</span></label>
+        <input type="text" id="hinagataTriggers" placeholder="例: セレネース,haloperidol,ハロペリドール">
+      </div>
+      <div class="field">
+        <label>所見テンプレート <span class="hint">{用量}{経路}{頻度}{適応}{サイズ}{枚数}{部位} を使用可</span></label>
+        <textarea id="hinagataShoken" class="template" placeholder="【処方】セレネース 1日{用量}&#10;【投与経路】{経路}&#10;【適応】{適応}"></textarea>
+      </div>
+      <div class="field">
+        <label>レセプトテンプレート</label>
+        <textarea id="hinagataReseputo" class="template" placeholder="抗精神病薬:セレネース 1日{用量} {経路}"></textarea>
+      </div>
+      <div class="form-row thirds">
+        <div class="field">
+          <label>優先度 <span class="hint">小さい順に表示</span></label>
+          <input type="text" id="hinagataPriority" placeholder="例: 4">
+        </div>
+        <div class="field">
+          <label>有効</label>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 8px 0;">
+            <input type="checkbox" class="toggle" id="hinagataValid" checked>
+            <span style="font-size: 13px; color: var(--muted);">オフで一時無効化</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>追加メモ</label>
+          <input type="text" id="hinagataMemo" placeholder="注意点・例文など">
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" id="hinagataSubmitBtn" onclick="submitHinagata()">追加</button>
+        <button class="btn btn-secondary" onclick="cancelHinagataEdit()" id="hinagataCancelBtn" style="display: none;">編集キャンセル</button>
+        <button class="btn btn-secondary" onclick="loadHinagata(true)">最新を取得</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <h2 style="margin: 0;">📋 雛形一覧 <span class="badge" id="hinagataCount">…</span></h2>
+        <div class="filter">
+          <input type="text" id="hinagataSearch" placeholder="絞り込み(名前/トリガー)" oninput="renderHinagataList()">
+        </div>
+      </div>
+      <div id="hinagataListContainer">
+        <div class="loading">読み込み中…</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- テストタブ -->
+  <section id="tab-test" class="hidden">
+    <div class="card">
+      <h2>🧪 Bot返信プレビュー</h2>
+      <p style="color: var(--muted); font-size: 13px; margin-top: 0;">
+        メッセージを入力して、LINE WORKSのBotがどう返信するかシミュレートします。略語変換と雛形展開の両方が動きます。
+      </p>
+      <div class="field">
+        <label>入力メッセージ</label>
+        <textarea id="testInput" placeholder="例: モルヒネ 5mg sc tid 癌性疼痛"></textarea>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="runTest()">▶ テスト実行</button>
+        <button class="btn btn-secondary" onclick="loadTestSamples()">サンプルを入れる</button>
+      </div>
+      <h3 style="margin-top: 16px; font-size: 14px; color: var(--primary-dark);">Bot返信(プレビュー)</h3>
+      <div class="test-output empty" id="testOutput">ここに結果が表示されます</div>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// =============================================================
+// 設定 & 認証
+// =============================================================
+const STORAGE_KEY_URL = 'admin_api_url';
+const STORAGE_KEY_PWD = 'admin_password';
+let API_URL = '';
+let PASSWORD = '';
+
+let cachedRyakugo = [];
+let cachedHinagata = [];
+let editingHinagataId = null;
+
+// =============================================================
+// JSONP通信
+// =============================================================
+function jsonp(params) {
+  return new Promise((resolve, reject) => {
+    const cb = '__jsonpcb_' + Date.now() + '_' + Math.floor(Math.random() * 1e9);
+    const timeout = setTimeout(() => {
+      cleanup();
+      reject(new Error('タイムアウト(15秒)'));
+    }, 15000);
+    function cleanup() {
+      clearTimeout(timeout);
+      delete window[cb];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+    window[cb] = (data) => {
+      cleanup();
+      if (data && data.ok === false) reject(new Error(data.error || 'unknown error'));
+      else resolve(data);
+    };
+    const url = API_URL + '?' + new URLSearchParams({ ...params, callback: cb }).toString();
+    const script = document.createElement('script');
+    script.src = url;
+    script.onerror = () => { cleanup(); reject(new Error('GASに接続できませんでした')); };
+    document.head.appendChild(script);
+  });
+}
+
+// 書き込み(POST + 後追いJSONP確認)
+async function postAdmin(action, body) {
+  // mode: 'no-cors' でPOST送信 → レスポンスは読めない
+  await fetch(API_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action, adminPassword: PASSWORD, ...body }),
+  });
+  // 即座に成功判定はできないので、呼び出し側で再fetchして反映確認する
+  return { posted: true };
+}
+
+// =============================================================
+// ログイン処理
+// =============================================================
+function toggleConfig() {
+  document.getElementById('configSection').classList.toggle('hidden');
+}
+
+async function doLogin() {
+  const pwd = document.getElementById('passwordInput').value.trim();
+  let url = document.getElementById('apiUrlInput').value.trim();
+  if (!url) url = localStorage.getItem(STORAGE_KEY_URL) || '';
+
+  if (!pwd) { showLoginError('パスワードを入力してください'); return; }
+  if (!url) { showLoginError('GAS Web App URLを設定してください(▼詳細設定)'); return; }
+
+  API_URL = url;
+  PASSWORD = pwd;
+
+  try {
+    const r = await jsonp({ action: 'auth', password: pwd });
+    if (r && r.ok) {
+      localStorage.setItem(STORAGE_KEY_URL, url);
+      sessionStorage.setItem(STORAGE_KEY_PWD, pwd);
+      showMain();
+    } else {
+      showLoginError('パスワードが違います');
+    }
+  } catch (e) {
+    showLoginError('接続エラー: ' + e.message);
+  }
+}
+
+function showLoginError(msg) {
+  document.getElementById('loginError').textContent = msg;
+}
+
+function doLogout() {
+  sessionStorage.removeItem(STORAGE_KEY_PWD);
+  PASSWORD = '';
+  location.reload();
+}
+
+function showMain() {
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('mainScreen').classList.remove('hidden');
+  loadRyakugo();
+  loadHinagata();
+}
+
+// 初期化:保存済みURLを復元、セッション中のパスワードを復元
+window.addEventListener('DOMContentLoaded', () => {
+  const savedUrl = localStorage.getItem(STORAGE_KEY_URL);
+  if (savedUrl) document.getElementById('apiUrlInput').value = savedUrl;
+
+  const savedPwd = sessionStorage.getItem(STORAGE_KEY_PWD);
+  if (savedPwd && savedUrl) {
+    API_URL = savedUrl;
+    PASSWORD = savedPwd;
+    showMain();
+  }
+});
+
+document.getElementById('passwordInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') doLogin();
+});
+
+// =============================================================
+// タブ切替
+// =============================================================
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const tab = btn.dataset.tab;
+    document.getElementById('tab-ryakugo').classList.toggle('hidden', tab !== 'ryakugo');
+    document.getElementById('tab-hinagata').classList.toggle('hidden', tab !== 'hinagata');
+    document.getElementById('tab-test').classList.toggle('hidden', tab !== 'test');
+  });
+});
+
+// =============================================================
+// 略語タブ
+// =============================================================
+async function loadRyakugo(silent) {
+  if (!silent) document.getElementById('ryakugoListContainer').innerHTML = '<div class="loading">読み込み中…</div>';
+  try {
+    const r = await jsonp({ action: 'list_ryakugo', password: PASSWORD });
+    cachedRyakugo = r.items || [];
+    renderRyakugoList();
+    updateStats();
+  } catch (e) {
+    document.getElementById('ryakugoListContainer').innerHTML = '<div class="empty">取得失敗: ' + escapeHtml(e.message) + '</div>';
+    showToast('取得失敗: ' + e.message, 'error');
+  }
+}
+
+function renderRyakugoList() {
+  const container = document.getElementById('ryakugoListContainer');
+  const search = document.getElementById('ryakugoSearch').value.trim().toLowerCase();
+  const catFilter = document.getElementById('ryakugoCategoryFilter').value;
+
+  // カテゴリフィルタの選択肢を更新
+  const cats = [...new Set(cachedRyakugo.map(r => r.category).filter(Boolean))];
+  const sel = document.getElementById('ryakugoCategoryFilter');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">全カテゴリ</option>' +
+    cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+  sel.value = cur;
+
+  let list = cachedRyakugo
+    .filter(r => !catFilter || r.category === catFilter)
+    .filter(r => !search ||
+      r.ryakugo.toLowerCase().includes(search) ||
+      r.seishikiName.toLowerCase().includes(search));
+
+  document.getElementById('ryakugoCount').textContent = list.length + ' / ' + cachedRyakugo.length;
+
+  if (list.length === 0) {
+    container.innerHTML = '<div class="empty">該当する略語がありません</div>';
+    return;
+  }
+
+  container.innerHTML = `
+    <table class="list">
+      <thead>
+        <tr>
+          <th style="width: 40px;">有効</th>
+          <th style="width: 120px;">略語</th>
+          <th style="width: 200px;">正式名称</th>
+          <th style="width: 120px;">カテゴリ</th>
+          <th>例文/メモ</th>
+          <th style="width: 100px; text-align: right;">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${list.map((r, i) => `
+          <tr class="${r.valid ? '' : 'disabled'}" data-id="${r.id}">
+            <td><input type="checkbox" class="toggle" ${r.valid ? 'checked' : ''} onchange="toggleRyakugo('${r.id}', this.checked)"></td>
+            <td><input type="text" class="editable" value="${escapeAttr(r.ryakugo)}" onchange="editRyakugo('${r.id}', 'ryakugo', this.value)"></td>
+            <td><input type="text" class="editable" value="${escapeAttr(r.seishikiName)}" onchange="editRyakugo('${r.id}', 'seishikiName', this.value)"></td>
+            <td>${escapeHtml(r.category || '')}</td>
+            <td><input type="text" class="editable" value="${escapeAttr(r.example || r.memo || '')}" placeholder="-" onchange="editRyakugo('${r.id}', 'example', this.value)"></td>
+            <td class="actions">
+              <button class="btn btn-ghost btn-tiny" onclick="deleteRyakugoConfirm('${r.id}', '${escapeAttr(r.ryakugo)}')">🗑</button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+async function addRyakugo() {
+  const data = {
+    ryakugo: document.getElementById('ryakugoNewAbbr').value.trim().toLowerCase(),
+    seishikiName: document.getElementById('ryakugoNewFull').value.trim(),
+    valid: true,
+    category: document.getElementById('ryakugoNewCategory').value,
+    example: document.getElementById('ryakugoNewExample').value.trim(),
+    memo: document.getElementById('ryakugoNewMemo').value.trim(),
+  };
+  if (!data.ryakugo || !data.seishikiName) {
+    showToast('略語と正式名称を入力してください', 'error');
+    return;
+  }
+  showToast('追加中...', 'warn');
+  await postAdmin('add_ryakugo', { data });
+  // フォームクリア
+  document.getElementById('ryakugoNewAbbr').value = '';
+  document.getElementById('ryakugoNewFull').value = '';
+  document.getElementById('ryakugoNewCategory').value = '';
+  document.getElementById('ryakugoNewExample').value = '';
+  document.getElementById('ryakugoNewMemo').value = '';
+  setTimeout(() => loadRyakugo(true).then(() => showToast('追加しました')), 1500);
+}
+
+async function toggleRyakugo(id, valid) {
+  const item = cachedRyakugo.find(r => r.id === id);
+  if (!item) return;
+  await postAdmin('update_ryakugo', { id, data: { ...item, valid } });
+  setTimeout(() => loadRyakugo(true).then(() => showToast(valid ? '有効化しました' : '無効化しました')), 1200);
+}
+
+async function editRyakugo(id, field, value) {
+  const item = cachedRyakugo.find(r => r.id === id);
+  if (!item) return;
+  const data = { ...item, [field]: value };
+  await postAdmin('update_ryakugo', { id, data });
+  setTimeout(() => loadRyakugo(true).then(() => showToast('更新しました')), 1200);
+}
+
+async function deleteRyakugoConfirm(id, name) {
+  if (!confirm(`「${name}」を削除しますか?`)) return;
+  await postAdmin('delete_ryakugo', { id });
+  setTimeout(() => loadRyakugo(true).then(() => showToast('削除しました')), 1200);
+}
+
+// =============================================================
+// 雛形タブ
+// =============================================================
+async function loadHinagata(silent) {
+  if (!silent) document.getElementById('hinagataListContainer').innerHTML = '<div class="loading">読み込み中…</div>';
+  try {
+    const r = await jsonp({ action: 'list_hinagata', password: PASSWORD });
+    cachedHinagata = r.items || [];
+    renderHinagataList();
+    updateStats();
+  } catch (e) {
+    document.getElementById('hinagataListContainer').innerHTML = '<div class="empty">取得失敗: ' + escapeHtml(e.message) + '</div>';
+    showToast('取得失敗: ' + e.message, 'error');
+  }
+}
+
+function renderHinagataList() {
+  const container = document.getElementById('hinagataListContainer');
+  const search = document.getElementById('hinagataSearch').value.trim().toLowerCase();
+  let list = cachedHinagata.filter(h => !search ||
+    h.name.toLowerCase().includes(search) ||
+    (h.triggers || '').toLowerCase().includes(search));
+  document.getElementById('hinagataCount').textContent = list.length + ' / ' + cachedHinagata.length;
+
+  if (list.length === 0) {
+    container.innerHTML = '<div class="empty">該当する雛形がありません</div>';
+    return;
+  }
+
+  container.innerHTML = '<div class="hinagata-grid">' +
+    list.map(h => `
+      <div class="hinagata-card ${h.valid ? '' : 'disabled'}">
+        <div class="head">
+          <div class="name">${escapeHtml(h.name)} ${h.category ? `<span class="badge">${escapeHtml(h.category)}</span>` : ''} ${h.priority != null ? `<span class="badge">優先度${h.priority}</span>` : ''}</div>
+          <div>
+            <input type="checkbox" class="toggle" ${h.valid ? 'checked' : ''} onchange="toggleHinagata('${h.id}', this.checked)">
+          </div>
+        </div>
+        <div class="triggers">🎯 ${escapeHtml(h.triggers || '')}</div>
+        <div class="template-preview"><strong>所見:</strong>\n${escapeHtml(h.shoken || '')}</div>
+        ${h.reseputo ? `<div class="template-preview"><strong>レセプト:</strong>\n${escapeHtml(h.reseputo)}</div>` : ''}
+        ${h.memo ? `<div style="font-size: 12px; color: var(--muted); margin-top: 6px;">📝 ${escapeHtml(h.memo)}</div>` : ''}
+        <div class="form-actions" style="margin-top: 8px;">
+          <button class="btn btn-secondary btn-tiny" onclick="editHinagata('${h.id}')">✏ 編集</button>
+          <button class="btn btn-danger btn-tiny" onclick="deleteHinagataConfirm('${h.id}', '${escapeAttr(h.name)}')">🗑 削除</button>
+        </div>
+      </div>
+    `).join('') + '</div>';
+}
+
+async function submitHinagata() {
+  const data = {
+    name: document.getElementById('hinagataName').value.trim(),
+    triggers: document.getElementById('hinagataTriggers').value.trim(),
+    shoken: document.getElementById('hinagataShoken').value,
+    reseputo: document.getElementById('hinagataReseputo').value,
+    category: document.getElementById('hinagataCategory').value,
+    priority: parseFloat(document.getElementById('hinagataPriority').value) || null,
+    valid: document.getElementById('hinagataValid').checked,
+    memo: document.getElementById('hinagataMemo').value.trim(),
+  };
+  if (!data.name || !data.triggers) {
+    showToast('雛形名とトリガーは必須です', 'error');
+    return;
+  }
+  showToast(editingHinagataId ? '更新中...' : '追加中...', 'warn');
+  if (editingHinagataId) {
+    await postAdmin('update_hinagata', { id: editingHinagataId, data });
+  } else {
+    await postAdmin('add_hinagata', { data });
+  }
+  cancelHinagataEdit();
+  setTimeout(() => loadHinagata(true).then(() => showToast('保存しました')), 1500);
+}
+
+function editHinagata(id) {
+  const h = cachedHinagata.find(x => x.id === id);
+  if (!h) return;
+  editingHinagataId = id;
+  document.getElementById('hinagataName').value = h.name;
+  document.getElementById('hinagataTriggers').value = h.triggers || '';
+  document.getElementById('hinagataShoken').value = h.shoken || '';
+  document.getElementById('hinagataReseputo').value = h.reseputo || '';
+  document.getElementById('hinagataCategory').value = h.category || '';
+  document.getElementById('hinagataPriority').value = h.priority != null ? h.priority : '';
+  document.getElementById('hinagataValid').checked = h.valid !== false;
+  document.getElementById('hinagataMemo').value = h.memo || '';
+  document.getElementById('hinagataFormTitle').textContent = '✏ 編集中: ' + h.name;
+  document.getElementById('hinagataSubmitBtn').textContent = '更新';
+  document.getElementById('hinagataCancelBtn').style.display = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function cancelHinagataEdit() {
+  editingHinagataId = null;
+  document.getElementById('hinagataName').value = '';
+  document.getElementById('hinagataTriggers').value = '';
+  document.getElementById('hinagataShoken').value = '';
+  document.getElementById('hinagataReseputo').value = '';
+  document.getElementById('hinagataCategory').value = '';
+  document.getElementById('hinagataPriority').value = '';
+  document.getElementById('hinagataValid').checked = true;
+  document.getElementById('hinagataMemo').value = '';
+  document.getElementById('hinagataFormTitle').textContent = '+ 新規雛形の追加';
+  document.getElementById('hinagataSubmitBtn').textContent = '追加';
+  document.getElementById('hinagataCancelBtn').style.display = 'none';
+}
+
+async function toggleHinagata(id, valid) {
+  const item = cachedHinagata.find(h => h.id === id);
+  if (!item) return;
+  await postAdmin('update_hinagata', { id, data: { ...item, valid } });
+  setTimeout(() => loadHinagata(true).then(() => showToast(valid ? '有効化しました' : '無効化しました')), 1200);
+}
+
+async function deleteHinagataConfirm(id, name) {
+  if (!confirm(`「${name}」を削除しますか?`)) return;
+  await postAdmin('delete_hinagata', { id });
+  setTimeout(() => loadHinagata(true).then(() => showToast('削除しました')), 1200);
+}
+
+// =============================================================
+// テストプレビュー
+// =============================================================
+async function runTest() {
+  const text = document.getElementById('testInput').value;
+  if (!text.trim()) { showToast('メッセージを入力してください', 'error'); return; }
+  document.getElementById('testOutput').textContent = '実行中…';
+  document.getElementById('testOutput').classList.remove('empty');
+  try {
+    const r = await jsonp({ action: 'test_convert', password: PASSWORD, text });
+    const result = r.result || {};
+    let output = '';
+    const count = result.count || 0;
+    const hgCount = (result.hinagataMatches || []).length;
+    if (count > 0 && hgCount > 0) {
+      output += `✅ 変換完了 (${count}箇所) + 雛形展開 (${hgCount}件)\n\n`;
+    } else if (count > 0) {
+      output += `✅ 変換完了 (${count}箇所)\n\n`;
+    } else if (hgCount > 0) {
+      output += `✅ 雛形展開 (${hgCount}件)\n\n`;
+    } else {
+      output += `⚠ 変換対象の略語も雛形も見つかりませんでした\n\n`;
+    }
+    output += `— 変換後 —\n${result.converted || ''}`;
+    if (result.hinagataReply) output += result.hinagataReply;
+    output += `\n\n— 元の文章 —\n${text}`;
+    document.getElementById('testOutput').textContent = output;
+  } catch (e) {
+    document.getElementById('testOutput').textContent = 'エラー: ' + e.message;
+    document.getElementById('testOutput').classList.add('empty');
+  }
+}
+
+function loadTestSamples() {
+  const samples = [
+    'モルヒネ 5mg sc tid 癌性疼痛',
+    'ハイドロサイト 10×10cm 7枚 仙骨部 2日に1回',
+    'エンシュア 1日3缶 経口 低栄養状態',
+    '朝食後にラシックス1錠 po、頭痛時にロキソニン prn',
+  ];
+  const idx = Math.floor(Math.random() * samples.length);
+  document.getElementById('testInput').value = samples[idx];
+}
+
+// =============================================================
+// キャッシュクリア
+// =============================================================
+async function clearCachesAndReload() {
+  showToast('キャッシュをクリア中...', 'warn');
+  try {
+    await postAdmin('clear_cache', {});
+    setTimeout(() => {
+      loadRyakugo(true);
+      loadHinagata(true);
+      showToast('Botのキャッシュをクリアしました(即時反映状態)');
+    }, 1500);
+  } catch (e) {
+    showToast('失敗: ' + e.message, 'error');
+  }
+}
+
+// =============================================================
+// ユーティリティ
+// =============================================================
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (type ? ' ' + type : '');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function updateStats() {
+  const txt = `略語 ${cachedRyakugo.length}件 / 雛形 ${cachedHinagata.length}件`;
+  document.getElementById('statsText').textContent = txt;
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function escapeAttr(s) {
+  return String(s == null ? '' : s).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+</script>
+</body>
+</html>
