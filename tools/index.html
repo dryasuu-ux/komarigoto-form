@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>クリニック業務改善ツール集</title>
+<style>
+  :root {
+    --primary: #4a7c8a;
+    --primary-dark: #355d6a;
+    --accent: #f4a261;
+    --bg: #f7f5f0;
+    --card: #ffffff;
+    --text: #2d3a3f;
+    --muted: #7a8a90;
+    --border: #e0dcd3;
+    --success: #6a9f7e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  .container { max-width: 880px; margin: 0 auto; padding: 28px 16px 80px; }
+  header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  header h1 {
+    font-size: clamp(22px, 5vw, 30px);
+    margin: 0 0 8px;
+    color: var(--primary-dark);
+    letter-spacing: 0;
+  }
+  header p { color: var(--muted); margin: 0; font-size: 14px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .tool {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 22px 22px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    text-decoration: none;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.15s, box-shadow 0.15s;
+    border-left: 4px solid var(--primary);
+    position: relative;
+  }
+  .tool:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+  }
+  .tool .icon {
+    font-size: 36px;
+    margin-bottom: 10px;
+  }
+  .tool h2 {
+    margin: 0 0 6px;
+    font-size: 17px;
+    color: var(--primary-dark);
+  }
+  .tool .desc {
+    color: var(--muted);
+    font-size: 13px;
+    flex: 1;
+  }
+  .tool .meta {
+    display: flex;
+    gap: 6px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .tool .tag {
+    background: rgba(74,124,138,0.1);
+    color: var(--primary-dark);
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  .tool .tag.t1 { background: rgba(106,159,126,0.18); color: #4d7a5e; }
+  .tool .badge-status {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: var(--success);
+    color: white;
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+  }
+  .tool.coming-soon {
+    border-left-color: var(--border);
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  .tool.coming-soon .badge-status {
+    background: var(--muted);
+  }
+
+  .feedback {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 18px 22px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    text-align: center;
+  }
+  .feedback h3 {
+    margin: 0 0 6px;
+    font-size: 15px;
+    color: var(--primary-dark);
+  }
+  .feedback p { color: var(--muted); margin: 0 0 12px; font-size: 13px; }
+  .feedback a {
+    display: inline-block;
+    padding: 8px 18px;
+    background: var(--accent);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .feedback a:hover { background: #e09150; }
+
+  footer {
+    text-align: center;
+    margin-top: 24px;
+    color: var(--muted);
+    font-size: 11px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🛠 クリニック業務改善ツール集</h1>
+    <p>日々の煩雑な業務をちょっと楽にするための小さなツール</p>
+  </header>
+
+  <div class="grid">
+    <a href="./ryakugo.html" class="tool">
+      <span class="badge-status">利用可能</span>
+      <div class="icon">📝</div>
+      <h2>医療略語 変換ツール</h2>
+      <div class="desc">ラインワークスから貼り付けた医師指示の sc/iv/po などを、カルテ用の正式名称(皮下注射 等)に置換します。</div>
+      <div class="meta">
+        <span class="tag t1">Tier 1</span>
+        <span class="tag">略語置換</span>
+      </div>
+    </a>
+
+    <a href="./hinagata.html" class="tool">
+      <span class="badge-status">利用可能</span>
+      <div class="icon">📋</div>
+      <h2>カルテひな形 生成</h2>
+      <div class="desc">モルヒネ・ハイドロサイト・エンシュア等の処方時に、所見とレセプトコメントの下書きを自動生成します。</div>
+      <div class="meta">
+        <span class="tag t1">Tier 1</span>
+        <span class="tag">テンプレート</span>
+      </div>
+    </a>
+
+    <a href="./houmon.html" class="tool">
+      <span class="badge-status">利用可能</span>
+      <div class="icon">🚪</div>
+      <h2>訪問種別 ワンクリック挿入</h2>
+      <div class="desc">「自宅訪問」「施設訪問」をクリック1つでクリップボードにコピー。キーボードの 1/2 キーでも操作可。</div>
+      <div class="meta">
+        <span class="tag t1">Tier 2</span>
+        <span class="tag">定型文</span>
+      </div>
+    </a>
+
+    <div class="tool coming-soon">
+      <span class="badge-status">準備中</span>
+      <div class="icon">🩺</div>
+      <h2>Dr未訪問チェック支援</h2>
+      <div class="desc">Googleカレンダーの予定とカルテ作成状況を照合する補助ツール。手書き訪問記録の電子化方法を確認次第着手。</div>
+      <div class="meta">
+        <span class="tag">Tier 2</span>
+      </div>
+    </div>
+
+    <div class="tool coming-soon">
+      <span class="badge-status">準備中</span>
+      <div class="icon">🔄</div>
+      <h2>保険情報 二重入力解消</h2>
+      <div class="desc">ダイナミクス→DBへの保険情報自動同期。ダイナミクスのエクスポート機能調査後に着手。</div>
+      <div class="meta">
+        <span class="tag">Tier 2</span>
+      </div>
+    </div>
+
+    <div class="tool coming-soon">
+      <span class="badge-status">準備中</span>
+      <div class="icon">🧾</div>
+      <h2>クリニック戻し チェックリスト</h2>
+      <div class="desc">薬剤・材料の持出/戻しを朝・夕で確認するためのチェックリスト。次回バージョンで追加予定。</div>
+      <div class="meta">
+        <span class="tag">Tier 2</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="feedback">
+    <h3>💬 新しい困りごとを投稿</h3>
+    <p>このツール集にないお困りごとは、収集ボックスから投稿できます。</p>
+    <a href="../">📥 お困りごと投稿フォームへ</a>
+  </div>
+
+  <footer>
+    バージョン 0.1  /  Tier 1 ツール公開中  /  随時アップデート
+  </footer>
+</div>
+</body>
+</html>

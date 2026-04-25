@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>カルテひな形生成ツール</title>
+<style>
+  :root {
+    --primary: #4a7c8a;
+    --primary-dark: #355d6a;
+    --accent: #f4a261;
+    --bg: #f7f5f0;
+    --card: #ffffff;
+    --text: #2d3a3f;
+    --muted: #7a8a90;
+    --border: #e0dcd3;
+    --success: #6a9f7e;
+    --warn: #b87330;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  .container { max-width: 1100px; margin: 0 auto; padding: 20px 16px 80px; }
+  header { text-align: center; margin-bottom: 16px; }
+  header h1 {
+    font-size: clamp(20px, 4vw, 26px);
+    margin: 0 0 6px;
+    color: var(--primary-dark);
+  }
+  header p { color: var(--muted); margin: 0; font-size: 13px; }
+  .back { display: inline-block; color: var(--muted); text-decoration: none; font-size: 13px; margin-bottom: 8px; }
+  .back:hover { color: var(--primary); }
+  .card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 18px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    margin-bottom: 14px;
+  }
+  .selector {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .sel-btn {
+    flex: 1;
+    min-width: 120px;
+    padding: 14px 16px;
+    border: 2px solid var(--border);
+    background: var(--card);
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+    text-align: center;
+  }
+  .sel-btn:hover { border-color: var(--primary); }
+  .sel-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+  .sel-btn .icon { font-size: 22px; display: block; margin-bottom: 4px; }
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 12px;
+  }
+  @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+  .field { margin-bottom: 12px; }
+  .field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--text);
+  }
+  .field .hint { color: var(--muted); font-weight: normal; font-size: 11px; margin-left: 4px; }
+  input[type="text"], input[type="number"], select, textarea {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    font-size: 14px;
+    font-family: inherit;
+    background: #fafaf7;
+    color: var(--text);
+  }
+  input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:focus {
+    outline: none; border-color: var(--primary); background: white;
+  }
+  textarea { min-height: 60px; resize: vertical; }
+  .checkbox-group {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .checkbox-group label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 5px;
+  }
+  .checkbox-group label:hover { background: rgba(74,124,138,0.05); }
+  .output-section { margin-top: 8px; }
+  .output-block {
+    background: #fafaf7;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+  .output-block h3 {
+    margin: 0 0 8px;
+    font-size: 13px;
+    color: var(--primary-dark);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .output-text {
+    background: white;
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    font-family: -apple-system, "Hiragino Sans", "Yu Gothic", monospace;
+    font-size: 14px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    color: var(--text);
+    min-height: 50px;
+  }
+  .btn {
+    padding: 9px 18px;
+    border: none;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-tiny { padding: 5px 12px; font-size: 12px; border-radius: 5px; }
+  .btn-copy {
+    background: white;
+    color: var(--primary);
+    border: 1.5px solid var(--primary);
+  }
+  .btn-copy:hover { background: rgba(74,124,138,0.06); }
+  .placeholder {
+    text-align: center;
+    color: var(--muted);
+    font-style: italic;
+    padding: 30px 20px;
+  }
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--success);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    transition: transform 0.3s;
+    z-index: 100;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .warn-box {
+    background: #fff8e1;
+    border-left: 3px solid var(--warn);
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--warn);
+    margin-top: 10px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <a href="./index.html" class="back">← ツール集に戻る</a>
+    <h1>📋 カルテひな形 生成ツール</h1>
+    <p>処方内容を入れると、所見・レセプトコメントの下書きを生成します</p>
+  </header>
+
+  <div class="card">
+    <div class="selector">
+      <button class="sel-btn active" data-tool="morphine">
+        <span class="icon">💉</span>
+        モルヒネ注
+      </button>
+      <button class="sel-btn" data-tool="hydro">
+        <span class="icon">🩹</span>
+        ハイドロサイト等<br>(被覆材)
+      </button>
+      <button class="sel-btn" data-tool="ensure">
+        <span class="icon">🥛</span>
+        エンシュア等<br>(栄養剤)
+      </button>
+    </div>
+
+    <!-- モルヒネ -->
+    <div class="tool-form" id="form-morphine">
+      <div class="form-row">
+        <div class="field">
+          <label>モルヒネ製剤</label>
+          <select id="m-product">
+            <option>モルヒネ塩酸塩注10mg/1mL</option>
+            <option>モルヒネ塩酸塩注50mg/5mL</option>
+            <option>モルヒネ塩酸塩注200mg/5mL</option>
+            <option>プレペノン100mg(PCA用)</option>
+            <option>その他</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>投与経路</label>
+          <select id="m-route">
+            <option>皮下注射</option>
+            <option>静脈注射</option>
+            <option>持続皮下注射(PCA)</option>
+            <option>持続静脈注射(PCA)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>1日投与量(mg) <span class="hint">数値のみ</span></label>
+          <input type="number" id="m-dose" placeholder="例: 30" step="0.1">
+        </div>
+        <div class="field">
+          <label>投与回数 / レスキュー</label>
+          <input type="text" id="m-freq" placeholder="例: 24時間持続、レスキュー1回量2.5mg">
+        </div>
+      </div>
+      <div class="field">
+        <label>適応(疼痛部位・症状)</label>
+        <input type="text" id="m-indication" placeholder="例: 癌性疼痛(腰痛・骨転移)">
+      </div>
+      <div class="field">
+        <label>備考(レスキュー使用状況・前回処方からの変化など)</label>
+        <textarea id="m-note" placeholder="例: レスキュー1日3回使用継続のためベース増量"></textarea>
+      </div>
+    </div>
+
+    <!-- ハイドロサイト -->
+    <div class="tool-form" id="form-hydro" style="display:none;">
+      <div class="form-row">
+        <div class="field">
+          <label>製品</label>
+          <select id="h-product">
+            <option>ハイドロサイトプラス</option>
+            <option>ハイドロサイトAD</option>
+            <option>ハイドロサイトAD ジェントル</option>
+            <option>メピレックスボーダー</option>
+            <option>アクアセル Ag</option>
+            <option>その他</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>サイズ</label>
+          <select id="h-size">
+            <option>5×5cm</option>
+            <option>7.5×7.5cm</option>
+            <option>10×10cm</option>
+            <option>12.5×12.5cm</option>
+            <option>15×15cm</option>
+            <option>17.5×17.5cm</option>
+            <option>その他</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>枚数</label>
+          <input type="number" id="h-count" placeholder="例: 7" min="1">
+        </div>
+        <div class="field">
+          <label>貼付部位</label>
+          <input type="text" id="h-site" placeholder="例: 仙骨部">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>褥瘡サイズ(縦×横 cm)</label>
+          <input type="text" id="h-wound" placeholder="例: 4×3cm">
+        </div>
+        <div class="field">
+          <label>DESIGN-R / 深さ</label>
+          <input type="text" id="h-design" placeholder="例: D3-e1s3i0G6n0p0">
+        </div>
+      </div>
+      <div class="field">
+        <label>創部所見</label>
+        <textarea id="h-observation" placeholder="例: 滲出液中等量、壊死組織なし、肉芽形成良好"></textarea>
+      </div>
+      <div class="field">
+        <label>交換頻度</label>
+        <select id="h-changefreq">
+          <option>1日1回</option>
+          <option>2日に1回</option>
+          <option>3日に1回</option>
+          <option>週2回</option>
+          <option>滲出液量により適宜</option>
+        </select>
+      </div>
+      <div class="warn-box">
+        ⚠ 褥瘡情報が看護師から入力されていない場合、空欄のまま生成し、後で追記してください。「想像で書く」のは避けます。
+      </div>
+    </div>
+
+    <!-- エンシュア -->
+    <div class="tool-form" id="form-ensure" style="display:none;">
+      <div class="form-row">
+        <div class="field">
+          <label>製品</label>
+          <select id="e-product">
+            <option>エンシュア・リキッド(250mL/250kcal)</option>
+            <option>エンシュアH(250mL/375kcal)</option>
+            <option>ラコール(200mL/200kcal)</option>
+            <option>ラコールNF(200mL/200kcal)</option>
+            <option>イノラス(187.5mL/300kcal)</option>
+            <option>エネーボ(250mL/300kcal)</option>
+            <option>その他</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>味・フレーバー</label>
+          <select id="e-flavor">
+            <option>バニラ</option>
+            <option>ストロベリー</option>
+            <option>コーヒー</option>
+            <option>バナナ</option>
+            <option>メロン</option>
+            <option>抹茶</option>
+            <option>指定なし</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>1日量</label>
+          <input type="text" id="e-dose" placeholder="例: 1日3缶(750mL/750kcal)">
+        </div>
+        <div class="field">
+          <label>投与方法</label>
+          <select id="e-route">
+            <option>経口</option>
+            <option>経管(PEG)</option>
+            <option>経管(NG)</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>適応(状態・栄養状態)</label>
+        <input type="text" id="e-indication" placeholder="例: 食事摂取量低下による低栄養状態">
+      </div>
+      <div class="field">
+        <label>備考</label>
+        <textarea id="e-note" placeholder="例: 経口摂取困難、家族希望によりイノラスへ変更"></textarea>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="generate()" style="margin-top: 6px;">📄 ひな形を生成する</button>
+  </div>
+
+  <div class="card">
+    <div class="output-section" id="outputArea">
+      <div class="placeholder">上のフォームに入力して「ひな形を生成する」を押してください</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let activeTool = 'morphine';
+
+document.querySelectorAll('.sel-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.sel-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeTool = btn.dataset.tool;
+    document.querySelectorAll('.tool-form').forEach(f => f.style.display = 'none');
+    document.getElementById(`form-${activeTool}`).style.display = '';
+    document.getElementById('outputArea').innerHTML = '<div class="placeholder">上のフォームに入力して「ひな形を生成する」を押してください</div>';
+  });
+});
+
+function val(id) { return document.getElementById(id).value.trim(); }
+
+function generate() {
+  let result;
+  if (activeTool === 'morphine') result = genMorphine();
+  else if (activeTool === 'hydro') result = genHydro();
+  else if (activeTool === 'ensure') result = genEnsure();
+  if (!result) return;
+  renderOutput(result);
+}
+
+function genMorphine() {
+  const product = val('m-product');
+  const route = val('m-route');
+  const dose = val('m-dose');
+  const freq = val('m-freq');
+  const indication = val('m-indication');
+  const note = val('m-note');
+
+  if (!dose) { showToast('1日投与量を入力してください', true); return null; }
+
+  const observation =
+`【処方】${product}
+【投与経路】${route}
+【1日投与量】${dose}mg
+${freq ? `【投与方法】${freq}\n` : ''}${indication ? `【適応】${indication}\n` : ''}${note ? `【備考】${note}\n` : ''}`.trim();
+
+  const reseputo =
+`麻薬処方:${product} 1日${dose}mg ${route}にて投与
+${indication ? `適応:${indication}` : ''}`.trim();
+
+  return {
+    観察所見: observation,
+    レセプトコメント: reseputo,
+  };
+}
+
+function genHydro() {
+  const product = val('h-product');
+  const size = val('h-size');
+  const count = val('h-count');
+  const site = val('h-site');
+  const wound = val('h-wound');
+  const design = val('h-design');
+  const obs = val('h-observation');
+  const changefreq = val('h-changefreq');
+
+  if (!count || !site) { showToast('枚数と貼付部位を入力してください', true); return null; }
+
+  const observation =
+`【被覆材】${product} ${size} ×${count}枚
+【貼付部位】${site}
+【交換頻度】${changefreq}
+${wound ? `【褥瘡サイズ】${wound}\n` : ''}${design ? `【DESIGN-R】${design}\n` : ''}${obs ? `【創部所見】${obs}` : '【創部所見】(看護師記録参照)'}`.trim();
+
+  const reseputo =
+`褥瘡処置:${product} ${size}を${count}枚使用、${site}に貼付
+${wound || design ? `創部:${wound || ''} ${design || ''}`.trim() : ''}`.trim();
+
+  return {
+    観察所見: observation,
+    レセプトコメント: reseputo,
+  };
+}
+
+function genEnsure() {
+  const product = val('e-product');
+  const flavor = val('e-flavor');
+  const dose = val('e-dose');
+  const route = val('e-route');
+  const indication = val('e-indication');
+  const note = val('e-note');
+
+  if (!dose) { showToast('1日量を入力してください', true); return null; }
+
+  const observation =
+`【経腸栄養剤】${product}
+${flavor !== '指定なし' ? `【フレーバー】${flavor}\n` : ''}【投与量】${dose}
+【投与方法】${route}
+${indication ? `【適応】${indication}\n` : ''}${note ? `【備考】${note}\n` : ''}`.trim();
+
+  const reseputo =
+`経腸栄養剤投与:${product} ${dose} ${route}
+${indication ? `適応:${indication}` : ''}`.trim();
+
+  return {
+    観察所見: observation,
+    レセプトコメント: reseputo,
+  };
+}
+
+function renderOutput(blocks) {
+  const html = Object.entries(blocks).map(([title, text], i) => `
+    <div class="output-block">
+      <h3>
+        ${title}
+        <button class="btn btn-copy btn-tiny" onclick="copyBlock(${i})">📋 コピー</button>
+      </h3>
+      <div class="output-text" data-block-${i}>${escapeHtml(text)}</div>
+    </div>
+  `).join('');
+  document.getElementById('outputArea').innerHTML = html;
+  // Store blocks for copy
+  window._blocks = Object.values(blocks);
+}
+
+async function copyBlock(idx) {
+  const text = window._blocks[idx];
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast('クリップボードにコピーしました');
+  } catch (e) {
+    showToast('コピーに失敗しました', true);
+  }
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = isError ? '#c47272' : 'var(--success)';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+</script>
+</body>
+</html>

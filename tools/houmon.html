@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>訪問種別 ワンクリック挿入</title>
+<style>
+  :root {
+    --primary: #4a7c8a;
+    --primary-dark: #355d6a;
+    --bg: #f7f5f0;
+    --card: #ffffff;
+    --text: #2d3a3f;
+    --muted: #7a8a90;
+    --border: #e0dcd3;
+    --success: #6a9f7e;
+    --jitaku: #5b8db8;
+    --shisetsu: #c47a3d;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  .container { max-width: 700px; margin: 0 auto; padding: 20px 16px 80px; }
+  header { text-align: center; margin-bottom: 16px; }
+  header h1 {
+    font-size: clamp(20px, 4vw, 26px);
+    margin: 0 0 6px;
+    color: var(--primary-dark);
+  }
+  header p { color: var(--muted); margin: 0; font-size: 13px; }
+  .back { display: inline-block; color: var(--muted); text-decoration: none; font-size: 13px; margin-bottom: 8px; }
+  .back:hover { color: var(--primary); }
+  .card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 22px 22px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    margin-bottom: 14px;
+  }
+  .quick-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 12px;
+  }
+  @media (max-width: 480px) { .quick-buttons { grid-template-columns: 1fr; } }
+  .quick-btn {
+    padding: 28px 18px;
+    border: none;
+    border-radius: 14px;
+    color: white;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: transform 0.1s, box-shadow 0.15s;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+    position: relative;
+    text-align: center;
+  }
+  .quick-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.1);
+  }
+  .quick-btn .emoji { font-size: 32px; display: block; margin-bottom: 6px; }
+  .quick-btn .key {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    background: rgba(255,255,255,0.25);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .btn-jitaku { background: var(--jitaku); }
+  .btn-jitaku:hover { background: #4a7ca8; }
+  .btn-shisetsu { background: var(--shisetsu); }
+  .btn-shisetsu:hover { background: #b86a2d; }
+
+  .last-copied {
+    text-align: center;
+    padding: 14px;
+    background: #fafaf7;
+    border-radius: 8px;
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .last-copied .copied-text {
+    display: block;
+    color: var(--text);
+    font-size: 18px;
+    font-weight: 700;
+    margin-top: 4px;
+  }
+
+  .custom-section {
+    margin-top: 4px;
+  }
+  .custom-section h2 {
+    font-size: 14px;
+    color: var(--text);
+    margin: 0 0 10px;
+  }
+  .custom-list {
+    display: grid;
+    gap: 8px;
+  }
+  .custom-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .custom-item input {
+    flex: 1;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    font-size: 14px;
+    font-family: inherit;
+    background: #fafaf7;
+  }
+  .custom-item input:focus { outline: none; border-color: var(--primary); background: white; }
+  .custom-item button {
+    padding: 9px 16px;
+    border: 1.5px solid var(--primary);
+    background: white;
+    color: var(--primary);
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .custom-item button:hover { background: rgba(74,124,138,0.08); }
+  .custom-item .remove {
+    color: var(--muted);
+    border: none;
+    background: transparent;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  .custom-item .remove:hover { color: #c47272; }
+  .add-custom {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .add-custom input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+  }
+  .add-custom button {
+    padding: 8px 14px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--success);
+    color: white;
+    padding: 14px 28px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    transition: transform 0.3s;
+    z-index: 100;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .hint-box {
+    background: #fff8e1;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: #8a6d1c;
+    margin-top: 12px;
+  }
+  .hint-box kbd {
+    background: white;
+    border: 1px solid #e0c878;
+    border-radius: 3px;
+    padding: 1px 6px;
+    font-family: 'Menlo', monospace;
+    font-size: 11px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <a href="./index.html" class="back">← ツール集に戻る</a>
+    <h1>🚪 訪問種別 ワンクリック挿入</h1>
+    <p>クリック1つで「自宅訪問」「施設訪問」をクリップボードにコピー → カルテに貼付</p>
+  </header>
+
+  <div class="card">
+    <div class="quick-buttons">
+      <button class="quick-btn btn-jitaku" data-text="自宅訪問" onclick="copyText('自宅訪問')">
+        <span class="key">1</span>
+        <span class="emoji">🏠</span>
+        自宅訪問
+      </button>
+      <button class="quick-btn btn-shisetsu" data-text="施設訪問" onclick="copyText('施設訪問')">
+        <span class="key">2</span>
+        <span class="emoji">🏥</span>
+        施設訪問
+      </button>
+    </div>
+    <div class="last-copied" id="lastCopied">
+      まだコピーしていません
+    </div>
+    <div class="hint-box">
+      💡 キーボードの <kbd>1</kbd> で「自宅訪問」、<kbd>2</kbd> で「施設訪問」をコピーできます。コピーしたらカルテで <kbd>Cmd+V</kbd>(Mac) / <kbd>Ctrl+V</kbd>(Windows)で貼付してください。
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="custom-section">
+      <h2>📝 よく使う定型文(自由追加)</h2>
+      <div class="custom-list" id="customList"></div>
+      <div class="add-custom">
+        <input type="text" id="newCustom" placeholder="例: 入院患者宅訪問">
+        <button onclick="addCustom()">+ 追加</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'houmon_custom_v1';
+
+function loadCustom() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch (e) { return []; }
+}
+
+function saveCustom(arr) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+}
+
+function renderCustom() {
+  const list = loadCustom();
+  const wrap = document.getElementById('customList');
+  if (list.length === 0) {
+    wrap.innerHTML = '<div style="color: var(--muted); font-size: 13px; padding: 8px 0;">まだ定型文がありません。よく使う文言を下の欄から追加してください。</div>';
+    return;
+  }
+  wrap.innerHTML = list.map((t, i) => `
+    <div class="custom-item">
+      <input type="text" value="${escapeHtml(t)}" readonly>
+      <button onclick="copyText('${escapeAttr(t)}')">📋 コピー</button>
+      <button class="remove" onclick="removeCustom(${i})" title="削除">✕</button>
+    </div>
+  `).join('');
+}
+
+function addCustom() {
+  const input = document.getElementById('newCustom');
+  const text = input.value.trim();
+  if (!text) return;
+  const list = loadCustom();
+  list.push(text);
+  saveCustom(list);
+  input.value = '';
+  renderCustom();
+  showToast('追加しました');
+}
+
+function removeCustom(idx) {
+  const list = loadCustom();
+  list.splice(idx, 1);
+  saveCustom(list);
+  renderCustom();
+}
+
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast(`✓ 「${text}」をコピーしました`);
+    document.getElementById('lastCopied').innerHTML = `直前にコピー:<span class="copied-text">${escapeHtml(text)}</span>`;
+  } catch (e) {
+    showToast('コピーに失敗しました', true);
+  }
+}
+
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = isError ? '#c47272' : 'var(--success)';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function escapeAttr(s) {
+  return s.replace(/'/g, "\\'").replace(/"/g, '\\"');
+}
+
+// キーボードショートカット
+document.addEventListener('keydown', (e) => {
+  // input/textareaにフォーカス時は無効
+  if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+  if (e.key === '1') copyText('自宅訪問');
+  if (e.key === '2') copyText('施設訪問');
+});
+
+document.getElementById('newCustom').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') addCustom();
+});
+
+renderCustom();
+</script>
+</body>
+</html>

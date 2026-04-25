@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>医療略語変換ツール</title>
+<style>
+  :root {
+    --primary: #4a7c8a;
+    --primary-dark: #355d6a;
+    --accent: #f4a261;
+    --bg: #f7f5f0;
+    --card: #ffffff;
+    --text: #2d3a3f;
+    --muted: #7a8a90;
+    --border: #e0dcd3;
+    --highlight: #fff3a8;
+    --success: #6a9f7e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  .container { max-width: 1100px; margin: 0 auto; padding: 20px 16px 80px; }
+  header { text-align: center; margin-bottom: 16px; }
+  header h1 {
+    font-size: clamp(20px, 4vw, 26px);
+    margin: 0 0 6px;
+    color: var(--primary-dark);
+    white-space: nowrap;
+  }
+  header p { color: var(--muted); margin: 0; font-size: 13px; }
+  .back { display: inline-block; color: var(--muted); text-decoration: none; font-size: 13px; margin-bottom: 8px; }
+  .back:hover { color: var(--primary); }
+  .card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 18px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    margin-bottom: 14px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  @media (max-width: 740px) { .grid { grid-template-columns: 1fr; } }
+  .label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+  }
+  textarea {
+    width: 100%;
+    min-height: 220px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 15px;
+    font-family: inherit;
+    background: #fafaf7;
+    color: var(--text);
+    resize: vertical;
+    line-height: 1.7;
+  }
+  textarea:focus { outline: none; border-color: var(--primary); background: white; }
+  .output-box {
+    width: 100%;
+    min-height: 220px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #fafaf7;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    font-size: 15px;
+    overflow-y: auto;
+  }
+  .output-box mark {
+    background: var(--highlight);
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-weight: 600;
+  }
+  .empty-output { color: var(--muted); font-style: italic; }
+  .btn {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+  }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-secondary {
+    background: white;
+    color: var(--primary);
+    border: 1.5px solid var(--primary);
+  }
+  .btn-secondary:hover { background: rgba(74,124,138,0.06); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  .btn-ghost:hover { color: var(--primary); }
+  .btn-tiny {
+    padding: 4px 10px;
+    font-size: 12px;
+    border-radius: 6px;
+  }
+  .actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+  .stats {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+  .stats strong { color: var(--success); }
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--success);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    transition: transform 0.3s;
+    z-index: 100;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  details { margin-top: 14px; }
+  details summary {
+    cursor: pointer;
+    color: var(--primary);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 0;
+    user-select: none;
+  }
+  .dict-table {
+    width: 100%;
+    margin-top: 12px;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .dict-table th, .dict-table td {
+    text-align: left;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .dict-table th { background: #f0ede5; color: var(--muted); font-weight: 600; }
+  .dict-table td input {
+    width: 100%;
+    padding: 4px 8px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    font-size: 13px;
+    background: transparent;
+    font-family: inherit;
+  }
+  .dict-table td input:focus {
+    outline: none;
+    background: white;
+    border-color: var(--primary);
+  }
+  .dict-table tr.user-added { background: rgba(244,162,97,0.06); }
+  .dict-add-form {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .dict-add-form input {
+    flex: 1;
+    min-width: 120px;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+  }
+  .dict-add-form input:focus { outline: none; border-color: var(--primary); }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <a href="./index.html" class="back">← ツール集に戻る</a>
+    <h1>📝 医療略語 変換ツール</h1>
+    <p>ラインワークスから貼り付けた医師指示の略語を、カルテ用の正式名称に置換します</p>
+  </header>
+
+  <div class="card">
+    <div class="grid">
+      <div>
+        <div class="label">
+          <span>① 元の文章(ラインワークスからコピペ)</span>
+          <button class="btn btn-ghost btn-tiny" onclick="clearInput()">クリア</button>
+        </div>
+        <textarea id="input" placeholder="例: 朝食後にラシックス1錠 po、頭痛時にロキソニン 1錠 prn、夕方にインスリン 8単位 sc"></textarea>
+        <div class="stats" id="inputStats"></div>
+      </div>
+      <div>
+        <div class="label">
+          <span>② 変換後(ハイライト箇所が置換された箇所)</span>
+          <button class="btn btn-ghost btn-tiny" onclick="copyOutput()">📋 コピー</button>
+        </div>
+        <div class="output-box" id="output"><span class="empty-output">左側に文章を入力してください</span></div>
+        <div class="stats" id="outputStats"></div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-primary" onclick="convert()">変換する</button>
+      <button class="btn btn-secondary" onclick="loadSample()">サンプル文章を入れる</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <details open>
+      <summary>📖 略語辞書(クリックで開閉) — 編集して保存できます</summary>
+      <p style="font-size: 12px; color: var(--muted); margin: 8px 0 4px;">
+        現場で使われる略語を追加・修正してください。変更はこの端末のブラウザに保存されます。
+      </p>
+      <table class="dict-table">
+        <thead>
+          <tr>
+            <th style="width: 25%;">略語(小文字)</th>
+            <th style="width: 60%;">正式名称</th>
+            <th style="width: 15%; text-align: center;">操作</th>
+          </tr>
+        </thead>
+        <tbody id="dictTable"></tbody>
+      </table>
+      <div class="dict-add-form">
+        <input type="text" id="newAbbr" placeholder="略語(例: tid)">
+        <input type="text" id="newFull" placeholder="正式名称(例: 1日3回)">
+        <button class="btn btn-primary btn-tiny" onclick="addDict()">+ 追加</button>
+      </div>
+      <div class="actions" style="margin-top: 14px;">
+        <button class="btn btn-ghost btn-tiny" onclick="resetDict()">辞書を初期状態に戻す</button>
+      </div>
+    </details>
+  </div>
+
+  <div class="card" style="font-size: 12px; color: var(--muted); padding: 14px 18px;">
+    💡 <strong style="color: var(--text);">使い方のコツ:</strong>
+    略語は単語の境界(空白・句読点・改行)で囲まれている場合のみ置換されます。固有名詞や薬剤名の中の文字列(例:「discloser」内の sc)は置換されません。誤置換が起きた場合は辞書を編集してください。
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'ryakugo_dict_v1';
+
+// 初期辞書(医療現場で一般的なもの)
+const DEFAULT_DICT = {
+  'sc': '皮下注射',
+  'iv': '静脈注射',
+  'div': '点滴静脈注射',
+  'im': '筋肉注射',
+  'po': '経口',
+  'sl': '舌下',
+  'ir': '直腸',
+  'inh': '吸入',
+  'top': '外用',
+  'npo': '絶飲食',
+  'tid': '1日3回',
+  'bid': '1日2回',
+  'qd': '1日1回',
+  'qid': '1日4回',
+  'qod': '隔日',
+  'qhs': '就寝前',
+  'qam': '朝',
+  'qpm': '夕',
+  'prn': '頓用',
+  'ac': '食前',
+  'pc': '食後',
+  'hs': '就寝前',
+  'stat': '直ちに',
+  'bp': '血圧',
+  'hr': '心拍数',
+  'rr': '呼吸数',
+  'sat': '酸素飽和度',
+  'bs': '血糖値',
+  'ns': '生理食塩水',
+  'kcl': '塩化カリウム',
+  'cv': '中心静脈',
+  'pca': '自己調節鎮痛',
+  'pca-iv': '自己調節鎮痛(静脈)',
+  'pca-sc': '自己調節鎮痛(皮下)',
+  'mso4': '硫酸モルヒネ',
+};
+
+const SAMPLE = `朝食後にラシックス1錠 po
+頭痛時にロキソニン 1錠 prn
+夕方にインスリン 8単位 sc
+発熱時にカロナール tid
+点滴 ns 500ml div
+モルヒネ 5mg iv stat`;
+
+let dict = loadDict();
+
+function loadDict() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    return { ...DEFAULT_DICT, ...saved };
+  } catch (e) { return { ...DEFAULT_DICT }; }
+}
+
+function saveDict() {
+  // ユーザー追加・編集分のみ保存(デフォルトと差分があるもの+ユーザー追加分)
+  const userDict = {};
+  for (const [k, v] of Object.entries(dict)) {
+    if (DEFAULT_DICT[k] !== v) userDict[k] = v;
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(userDict));
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+function escapeRegex(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function convert() {
+  const input = document.getElementById('input').value;
+  if (!input.trim()) {
+    document.getElementById('output').innerHTML = '<span class="empty-output">左側に文章を入力してください</span>';
+    document.getElementById('inputStats').textContent = '';
+    document.getElementById('outputStats').textContent = '';
+    return;
+  }
+
+  let output = escapeHtml(input);
+  let count = 0;
+  // 長い略語から順に置換(部分一致防止)
+  const sorted = Object.keys(dict).sort((a, b) => b.length - a.length);
+  for (const abbr of sorted) {
+    const full = dict[abbr];
+    if (!full) continue;
+    // 単語境界:文頭/文末/空白/句読点/改行 で囲まれた場合のみ置換、大文字小文字無視
+    const re = new RegExp(`(^|[\\s、。,.!?():\\u3000【】「」『』])${escapeRegex(abbr)}(?=$|[\\s、。,.!?():\\u3000【】「」『』])`, 'gi');
+    output = output.replace(re, (match, prefix) => {
+      count++;
+      return `${prefix}<mark>${escapeHtml(full)}</mark>`;
+    });
+  }
+
+  document.getElementById('output').innerHTML = output;
+  document.getElementById('inputStats').textContent = `${input.length} 文字`;
+  document.getElementById('outputStats').innerHTML = count > 0
+    ? `<strong>${count}箇所</strong>を置換しました`
+    : '置換対象の略語は見つかりませんでした';
+}
+
+function clearInput() {
+  document.getElementById('input').value = '';
+  convert();
+}
+
+function loadSample() {
+  document.getElementById('input').value = SAMPLE;
+  convert();
+}
+
+async function copyOutput() {
+  // ハイライトを除いたプレーンテキストをコピー
+  const html = document.getElementById('output').innerHTML;
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  const text = tmp.textContent || tmp.innerText || '';
+  if (!text || text.includes('左側に文章を入力')) { showToast('コピーする内容がありません', true); return; }
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast('クリップボードにコピーしました');
+  } catch (e) {
+    showToast('コピーに失敗しました', true);
+  }
+}
+
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = isError ? '#c47272' : 'var(--success)';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function renderDict() {
+  const tbody = document.getElementById('dictTable');
+  const sorted = Object.entries(dict).sort((a, b) => a[0].localeCompare(b[0]));
+  tbody.innerHTML = sorted.map(([abbr, full]) => {
+    const isUser = !DEFAULT_DICT[abbr] || DEFAULT_DICT[abbr] !== full;
+    return `
+      <tr class="${isUser ? 'user-added' : ''}">
+        <td><code>${escapeHtml(abbr)}</code></td>
+        <td><input type="text" value="${escapeHtml(full)}" data-abbr="${escapeHtml(abbr)}" onchange="updateDict(this)"></td>
+        <td style="text-align: center;">
+          <button class="btn btn-ghost btn-tiny" onclick="removeDict('${escapeHtml(abbr).replace(/'/g, "\\'")}')">削除</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function updateDict(input) {
+  const abbr = input.dataset.abbr;
+  const newVal = input.value.trim();
+  if (newVal) {
+    dict[abbr] = newVal;
+    saveDict();
+    convert();
+    showToast(`「${abbr}」を更新しました`);
+  }
+}
+
+function addDict() {
+  const a = document.getElementById('newAbbr').value.trim().toLowerCase();
+  const f = document.getElementById('newFull').value.trim();
+  if (!a || !f) { showToast('略語と正式名称の両方を入力してください', true); return; }
+  dict[a] = f;
+  saveDict();
+  document.getElementById('newAbbr').value = '';
+  document.getElementById('newFull').value = '';
+  renderDict();
+  convert();
+  showToast(`「${a}」→「${f}」を追加しました`);
+}
+
+function removeDict(abbr) {
+  if (!confirm(`「${abbr}」を辞書から削除しますか?`)) return;
+  delete dict[abbr];
+  saveDict();
+  renderDict();
+  convert();
+  showToast(`「${abbr}」を削除しました`);
+}
+
+function resetDict() {
+  if (!confirm('辞書をすべて初期状態に戻します。追加・編集した内容は失われます。よろしいですか?')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  dict = { ...DEFAULT_DICT };
+  renderDict();
+  convert();
+  showToast('辞書を初期状態に戻しました');
+}
+
+document.getElementById('input').addEventListener('input', convert);
+renderDict();
+</script>
+</body>
+</html>
